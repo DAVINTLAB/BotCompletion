@@ -1,0 +1,14 @@
+# TwiBot-22 configuration (BotSay splits)
+# API key is loaded from the OPENROUTER_API_KEY environment variable.
+
+dataset:
+  name: twibot22
+  path: ./data/twibot22
+  # TwiBot-22 collection reference date, used to render account_age
+  reference_date: "2022-01-26"
+  date_format: "%Y-%m-%d %H:%M:%S"
+
+embedding:
+  model: jinaai/jina-embeddings-v3
+  batch_size: 64
+  checkpoint_interval: 100

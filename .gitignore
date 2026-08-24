@@ -1,0 +1,19 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+venv/
+
+# Dataset files — TwiBot-22 content cannot be redistributed (see data/README.md)
+data/*
+!data/README.md
+
+# Experiment outputs
+results/
+figures/
+*.db
+*.checkpoint.json

@@ -1,0 +1,80 @@
+{
+  "classify": {
+    "traces": [],
+    "train": [],
+    "demos": [],
+    "signature": {
+      "instructions": "Classify this Twitter account as 'bot' or 'human' based on the profile metadata and tweets provided.\n\nYou will receive the following inputs:\n- **name**: Display name of the account\n- **username**: Twitter handle\n- **description**: Bio text (may be empty)\n- **followers**: Number of followers\n- **following**: Number of accounts followed\n- **tweet_count**: Total number of tweets\n- **account_age**: How long the account has existed\n- **protected**: Whether the account is protected\n- **verified**: Whether the account is verified\n- **tweets**: A sample of the account's tweets (may be empty if no tweets exist)\n- **retweet_pct**: Percentage of sampled tweets that are retweets\n- **url_pct**: Percentage of sampled tweets containing URLs\n- **mention_pct**: Percentage of sampled tweets starting with mentions\n- **follower_following_ratio**: Ratio of followers to following\n\nYour output should be a single label: either `bot` or `human`.\n\n## Classification Guidelines\n\n### Important Calibration Note\nThis task uses a broader definition of \"bot\" than you might expect. The label \"bot\" applies not only to obvious spam/automation accounts but also to:\n- **Low-activity accounts with sparse metadata** — accounts that have very few tweets relative to their age, empty bios, and follow-heavy behavior, even if the few tweets they have look conversational.\n- **Accounts that appear to be organizational, curated, or semi-automated** — even if content looks well-written and varied, accounts with empty bios, low tweet counts relative to account age, and high URL percentages may be classified as 'bot'.\n- **Accounts with empty bios and disproportionate following** — empty bio is a stronger bot signal than you might think, especially when combined with other metadata issues.\n\n### Key Bot Indicators (consider the combination)\n1. **Empty bio** is a significant bot signal. Combined with any of the following, lean toward bot:\n   - Follow-heavy metadata (following >> followers)\n   - Low tweet count relative to account age\n   - High URL percentage (>40-50%)\n   - Very new account with few tweets\n2. **Follow-heavy ratio**: A very low follower/following ratio (e.g., < 0.1) with an empty bio suggests a follower bot.\n3. **Low tweet count relative to account age**: An account that is years old but has only a handful of tweets (e.g., <50 tweets over multiple years) is suspicious, especially with an empty bio.\n4. **High URL percentage** (e.g., >40-50% of tweets contain links) combined with an empty bio and/or low tweet volume suggests link-pushing or semi-automated curation.\n5. **Very high retweet percentage** (e.g., >80-90%) with near-zero original content suggests an amplification bot.\n6. **Very new account** (<2 months) with very few tweets (<10) and follow-heavy behavior suggests a bot.\n7. **No tweets at all** combined with other bot indicators should push toward 'bot'.\n8. **Templated, repetitive promotional language** — especially sales/service messaging repeated across tweets.\n9. **Username with long digit suffix** (e.g., \"Name12345678\") is a weak bot signal but should only be considered alongside other strong indicators.\n\n### Critical Distinction: Empty Bio + Low Activity = Bot Signal\nAn account with:\n- Empty bio\n- Low tweet count (even if account is old)\n- High URL% in tweets\n- No personal identity markers\n\nShould lean toward **bot** even if the tweet content appears well-written, varied, or academic/professional in nature. The absence of a bio on an account with sparse activity is a strong indicator that the account is automated, curated, or not genuinely human-operated.\n\n### Critical Distinction: Empty Bio + New Account + Follow-Heavy + Few Reply-Only Tweets\nAn account that is:\n- Very new (< 2 months)\n- Has an empty bio\n- Follows many more than follow it (ratio < 0.1)\n- Has only a handful of tweets, all of which are short replies/mentions\n\nShould be classified as **bot** even though the replies look conversational. Real humans who are actively conversational typically accumulate more tweets quickly and usually fill in their bio. This pattern is characteristic of engagement-farming bots that leave short supportive replies to gain followers.\n\n### Evidence That Supports 'human' (require strong convergence)\n- **Verified account** — treat verification as a near-hard human prior unless overwhelming automation evidence appears.\n- **High follower/following ratio** (well above 1.0) with substantial followers AND a non-empty bio with personal identity markers.\n- **High tweet volume with long account history** — accounts with thousands of tweets over years of activity are much more likely human.\n- **Non-empty bio with personal/professional identity markers** combined with established account history and substantial tweet volume.\n- **Conversational replies with varied content** — BUT only count this as human evidence when combined with a non-empty bio and reasonable tweet volume. Short replies alone (especially on new, sparse accounts) are NOT sufficient to override bot signals.\n- **Protected account** with other human-consistent signals.\n- **Casual/informal language patterns with high volume** — slang, emoji usage, humor, and emotional reactions across many tweets suggest human, but only a few such tweets on a sparse account do not.\n\n### Decision Framework\n1. **Check bio first**: Is it empty? If yes, the account needs strong human counter-evidence to avoid bot classification.\n2. **Check activity level**: Does the tweet count make sense for the account age? Very low activity (e.g., <5 tweets/month average over the account's lifetime) with an empty bio leans bot.\n3. **Check follower/following ratio**: Is the account follow-heavy? Combined with empty bio and low activity, this is bot.\n4. **Check URL%**: High URL% (>40%) with empty bio and sparse activity leans bot, even if content looks varied.\n5. **For human classification, require**: Non-empty bio with personal details OR high tweet volume (thousands) with long history OR verified status OR high follower ratio with substantial followers AND non-empty bio.\n6. **Do NOT let well-written or academic-looking content override metadata signals**: Bots can post well-crafted content. The metadata pattern (empty bio, low volume, high URL%) is more diagnostic than content quality.\n\n### Specific Archetypes\n\n#### Bot: New account, empty bio, follow-heavy, few short replies\n- Account age < 3 months\n- Empty bio\n- Following >> followers (ratio < 0.1)\n- Very few tweets (< 10)\n- Tweets are all short replies (\"Amen\", \"Facts\", single emoji)\n- **Classify as: bot**\n\n#### Bot: Old account, empty bio, very low tweet count, high URL%\n- Account age > 1 year\n- Empty bio\n- Low tweet count relative to age (e.g., 22 tweets over 4 years)\n- High URL% (>40%)\n- Content may look professional/academic\n- **Classify as: bot**\n\n#### Human: Established account with rich bio and high activity\n- Non-empty bio with personal/professional identity markers\n- High tweet count (thousands)\n- Long account history (years)\n- High follower/following ratio\n- Varied content (replies, original tweets, some RTs)\n- **Classify as: human**\n\n#### Human: Verified account\n- Verified = True\n- **Classify as: human** unless overwhelming automation evidence\n\n#### Human: Reply-heavy casual user with established presence\n- Non-empty bio OR high tweet count (thousands)\n- High mention% with varied conversational targets\n- Casual language, emoji, humor\n- Substantial account history\n- **Classify as: human**\n\n### Summary of Key Lessons\n1. Empty bio is a much stronger bot signal than it might seem — do not dismiss it.\n2. Well-written, varied, or academic content does NOT override sparse metadata (empty bio + low tweet count + high URL%).\n3. A few short conversational replies do NOT make an account human if it's new, has an empty bio, and is follow-heavy.\n4. For human classification, look for the COMBINATION of: non-empty bio with personal details + substantial tweet volume + reasonable account age + healthy follower ratio.\n5. When in doubt between bot and human, the decisive factors are: (a) presence/absence of bio, (b) tweet volume relative to account age, (c) follower/following dynamics. Content quality and conversational appearance are secondary signals.",
+      "fields": [
+        {
+          "prefix": "Name:",
+          "description": "The name of the user, as they've defined it on their profile. Not necessarily a person's name."
+        },
+        {
+          "prefix": "Username:",
+          "description": "The Twitter screen name, handle, or alias that this user identifies themselves with."
+        },
+        {
+          "prefix": "Description:",
+          "description": "The text of this user's profile description (also known as bio), if the user provided one."
+        },
+        {
+          "prefix": "Followers:",
+          "description": "The number of followers of the user."
+        },
+        {
+          "prefix": "Following:",
+          "description": "The number of users this user is following."
+        },
+        {
+          "prefix": "Tweet Count:",
+          "description": "The total number of tweets this user has made (lifetime, from the user's profile)."
+        },
+        {
+          "prefix": "Account Age:",
+          "description": "Account age in the format 'X years, Y days' for accounts older than 1 year, or 'Y days' for newer accounts."
+        },
+        {
+          "prefix": "Protected:",
+          "description": "Indicates if this user has chosen to protect their Tweets (in other words, if this user's Tweets are private)."
+        },
+        {
+          "prefix": "Verified:",
+          "description": "Indicates whether or not this Twitter user has a verified account."
+        },
+        {
+          "prefix": "Tweets:",
+          "description": "A selected sample of the user's tweets, each separated by '---'."
+        },
+        {
+          "prefix": "Retweet Pct:",
+          "description": "Percentage of the user's tweets that are retweets (start with 'RT @')."
+        },
+        {
+          "prefix": "Url Pct:",
+          "description": "Percentage of the user's tweets containing a URL."
+        },
+        {
+          "prefix": "Mention Pct:",
+          "description": "Percentage of the user's tweets that begin with '@' (replies or direct mentions)."
+        },
+        {
+          "prefix": "Follower Following Ratio:",
+          "description": "followers / max(1, following), rounded to 2 decimals."
+        },
+        {
+          "prefix": "Label:",
+          "description": "'bot' or 'human'"
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.13",
+      "dspy": "3.2.1",
+      "cloudpickle": "3.1"
+    }
+  }
+}

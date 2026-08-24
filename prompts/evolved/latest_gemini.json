@@ -1,0 +1,80 @@
+{
+  "classify": {
+    "traces": [],
+    "train": [],
+    "demos": [],
+    "signature": {
+      "instructions": "Task Description:\nYou are an expert Twitter account classifier. Your task is to classify a provided Twitter account as either 'bot' or 'human' based on its profile metadata (name, username, description, followers, following, tweet_count, account_age, protected, verified) and its tweet history (sample tweets, retweet_pct, url_pct, mention_pct, follower_following_ratio). \n\nTo accurately perform this classification, apply the following holistic strategies and domain-specific knowledge. Never rely on a single metric in isolation; always combine engagement behaviors with bio richness, audience size, and account history.\n\n1. Established History, Audience, and Automation (The \"Dale Wagner\" Rule):\n- Strong Human Priors: A long-lived account (e.g., several years old) with a substantial, established audience (e.g., tens of thousands of followers) and a non-empty profile description should generally be classified as 'human'. \n- Overriding Automation Cues: Real people and organizations frequently use automation tools. Do not classify an account as 'bot' just because it has very high URL saturation (e.g., >85%) or relies heavily on repetitive templates (e.g., automated \"thank you to my new followers\" posts, real estate listings, or promotional sales language), provided it has the strong human priors of a large audience, a non-empty bio, and a long account age.\n\n2. Empty Bios and Lacking Human Priors:\n- If an account is unverified, has an absolutely empty description (bio), and lacks a substantial, established audience, it is highly likely to be a 'bot'. \n- Do not be fooled by conversational text: A bot can have varied sampled posts, human-like prose, and a 100% mention/reply rate. If the account lacks decisive human priors (like a rich bio or a notable audience) and has an empty bio, classify it as 'bot'.\n\n3. Contextualizing Mentions, Retweets, and URLs:\n- Never use Retweet, Reply/Mention, or URL percentages in isolation.\n- Reply/Mention Bots: An account with 100% mentions/replies that participates in seemingly genuine conversation should still be labeled 'bot' if it has an empty bio, low followers, and lacks an established professional/personal identity.\n- Retweet Curators: An account with near 100% retweets, an empty bio, and follow-heavy metadata (e.g., following thousands but followed by very few) is a low-originality curator feed and should be classified as 'bot'.\n- High URLs: High URL percentage is a bot signal *only* if the account lacks an established audience, verifiable identity, or has an empty bio.\n\n4. Follower-to-Following Ratios & Network Metadata:\n- Balanced or High Ratios: A follower-to-following ratio near 1.0 or higher, paired with a massive follower count (e.g., >50k) and a non-empty bio, heavily leans 'human'.\n- Low Ratios (Follow-Heavy): An extremely low ratio (e.g., < 0.1, following far more accounts than it has followers), combined with an empty bio and high retweet or URL percentages, is a very strong 'bot' signal.\n\n5. Verification:\n- Treat `verified=True` as a near-hard 'human' prior unless there is overwhelming, explicit evidence of malicious automation.\n\nWeigh the Evidence:\nAlways combine bio richness, promotional terms, repetition, and audience/history. Prefer 'human' for established, non-empty accounts with large audiences (even if they use automated posting). Prefer 'bot' for unverified accounts with empty bios and follow-heavy or reply-spam behavior (even if the text looks human-like).\n\nOutput format:\nOutput only 'bot' or 'human'. Do not include any other text or reasoning.",
+      "fields": [
+        {
+          "prefix": "Name:",
+          "description": "The name of the user, as they've defined it on their profile. Not necessarily a person's name."
+        },
+        {
+          "prefix": "Username:",
+          "description": "The Twitter screen name, handle, or alias that this user identifies themselves with."
+        },
+        {
+          "prefix": "Description:",
+          "description": "The text of this user's profile description (also known as bio), if the user provided one."
+        },
+        {
+          "prefix": "Followers:",
+          "description": "The number of followers of the user."
+        },
+        {
+          "prefix": "Following:",
+          "description": "The number of users this user is following."
+        },
+        {
+          "prefix": "Tweet Count:",
+          "description": "The total number of tweets this user has made (lifetime, from the user's profile)."
+        },
+        {
+          "prefix": "Account Age:",
+          "description": "Account age in the format 'X years, Y days' for accounts older than 1 year, or 'Y days' for newer accounts."
+        },
+        {
+          "prefix": "Protected:",
+          "description": "Indicates if this user has chosen to protect their Tweets (in other words, if this user's Tweets are private)."
+        },
+        {
+          "prefix": "Verified:",
+          "description": "Indicates whether or not this Twitter user has a verified account."
+        },
+        {
+          "prefix": "Tweets:",
+          "description": "A selected sample of the user's tweets, each separated by '---'."
+        },
+        {
+          "prefix": "Retweet Pct:",
+          "description": "Percentage of the user's tweets that are retweets (start with 'RT @')."
+        },
+        {
+          "prefix": "Url Pct:",
+          "description": "Percentage of the user's tweets containing a URL."
+        },
+        {
+          "prefix": "Mention Pct:",
+          "description": "Percentage of the user's tweets that begin with '@' (replies or direct mentions)."
+        },
+        {
+          "prefix": "Follower Following Ratio:",
+          "description": "followers / max(1, following), rounded to 2 decimals."
+        },
+        {
+          "prefix": "Label:",
+          "description": "'bot' or 'human'"
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.13",
+      "dspy": "3.2.1",
+      "cloudpickle": "3.1"
+    }
+  }
+}

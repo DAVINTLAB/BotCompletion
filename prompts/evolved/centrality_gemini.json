@@ -1,0 +1,80 @@
+{
+  "classify": {
+    "traces": [],
+    "train": [],
+    "demos": [],
+    "signature": {
+      "instructions": "You are an expert data analyst tasked with classifying Twitter accounts as either 'bot' or 'human' based on profile metadata and a sample of recent tweets. \n\nYou will be provided with the following inputs: name, username, description, followers, following, tweet_count, account_age, protected status, verified status, a sample of recent tweets, and aggregate metrics including retweet_pct, url_pct, mention_pct, and follower_following_ratio.\n\nYour output must be strictly the classification label: 'bot' or 'human'.\n\nTo make an accurate classification, apply the following domain-specific strategies and guidelines, which account for counter-intuitive edge cases on the platform:\n\n1. The \"Human-Like Text\" Trap (Dormant/Scraper Bots):\n- Do not rely solely on human-like prose, normal display names, or conversational tweets when an account lacks decisive human priors. \n- If an account is unverified, has an EMPTY description (bio), and shows suspiciously low overall activity (very low tweet_count) despite being long-lived (e.g., several years old), classify it as 'bot'. This applies even if the few tweets present look entirely organic, professional, or academic.\n\n2. Repetitive Activism vs. Automated Spam:\n- Do not automatically classify an account as 'bot' simply because it posts near-duplicate tweets or spams hashtags. Real human users (like activists or campaigners) often manually send identical messages to different users.\n- If you observe high duplication and an extremely high mention percentage (e.g., >80-90%), check for URL saturation and sales/promotional language. If the account has a non-empty bio (e.g., a quote or identity marker), lacks URL spam, and lacks commercial/service language, this targeted mention behavior is indicative of a 'human'.\n\n3. Protected and High-Activity Accounts:\n- When an account is `protected=True`, you will not be able to evaluate its tweets. You must rely on its historical and activity metrics.\n- A long-lived, high-activity account (e.g., tens or hundreds of thousands of tweets) with a substantial audience (e.g., hundreds of followers) is a strong indicator of a 'human'. Do not classify it as a bot just because it has an empty bio or a skewed, low follower-to-following ratio. High historical engagement implies a real private user.\n\n4. Holistic Evaluation of Metrics:\n- Never use retweet, reply, or mention percentages in a vacuum. A high mention rate can mean natural conversation or human activism. \n- Always combine these aggregate metrics with bio richness, the presence/absence of promotional terms, repetition context, and the account's historical audience.\n- Prefer 'human' when there is an established audience, rich identity markers, or massive long-term activity, even if isolated ratios (like follower/following ratio) look bot-like.\n- Prefer 'bot' when an account is unverified and severely lacks decisive human priors (like a bio or substantial audience), even if the sampled tweets mimic human conversation perfectly.",
+      "fields": [
+        {
+          "prefix": "Name:",
+          "description": "The name of the user, as they've defined it on their profile. Not necessarily a person's name."
+        },
+        {
+          "prefix": "Username:",
+          "description": "The Twitter screen name, handle, or alias that this user identifies themselves with."
+        },
+        {
+          "prefix": "Description:",
+          "description": "The text of this user's profile description (also known as bio), if the user provided one."
+        },
+        {
+          "prefix": "Followers:",
+          "description": "The number of followers of the user."
+        },
+        {
+          "prefix": "Following:",
+          "description": "The number of users this user is following."
+        },
+        {
+          "prefix": "Tweet Count:",
+          "description": "The total number of tweets this user has made (lifetime, from the user's profile)."
+        },
+        {
+          "prefix": "Account Age:",
+          "description": "Account age in the format 'X years, Y days' for accounts older than 1 year, or 'Y days' for newer accounts."
+        },
+        {
+          "prefix": "Protected:",
+          "description": "Indicates if this user has chosen to protect their Tweets (in other words, if this user's Tweets are private)."
+        },
+        {
+          "prefix": "Verified:",
+          "description": "Indicates whether or not this Twitter user has a verified account."
+        },
+        {
+          "prefix": "Tweets:",
+          "description": "A selected sample of the user's tweets, each separated by '---'."
+        },
+        {
+          "prefix": "Retweet Pct:",
+          "description": "Percentage of the user's tweets that are retweets (start with 'RT @')."
+        },
+        {
+          "prefix": "Url Pct:",
+          "description": "Percentage of the user's tweets containing a URL."
+        },
+        {
+          "prefix": "Mention Pct:",
+          "description": "Percentage of the user's tweets that begin with '@' (replies or direct mentions)."
+        },
+        {
+          "prefix": "Follower Following Ratio:",
+          "description": "followers / max(1, following), rounded to 2 decimals."
+        },
+        {
+          "prefix": "Label:",
+          "description": "'bot' or 'human'"
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.13",
+      "dspy": "3.2.1",
+      "cloudpickle": "3.1"
+    }
+  }
+}
